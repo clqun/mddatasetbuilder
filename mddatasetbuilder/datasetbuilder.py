@@ -261,7 +261,7 @@ class DatasetBuilder:
         # calculates the total number of electrons, assumes they are paired as much as possible
         n_total = sum([atomic_numbers[s] for s in symbols])
         return n_total % 2 + 1
-
+    """
     def _convertgjf(self, gjffilename, takenatomidindex, atoms_whole):
         buff = []
         multiplicities = list(map(lambda atoms: self.detect_multiplicity(
@@ -294,7 +294,7 @@ class DatasetBuilder:
         buff.append('\n')
         with open(gjffilename, 'w') as f:
             f.write('\n'.join(buff))
-
+    """
     def _writestepxyzfile(self, item):
         step, lines = item
         results = 0
@@ -313,28 +313,33 @@ class DatasetBuilder:
                     atoma-1, range(len(step_atoms)), mic=True)
                 cutoffatomid = np.where(distances < self.cutoff)
                 # make cutoff atoms in molecules
-                takenatomids = []
-                takenatomidindex = []
                 idsum = 0
                 for mo in molecules:
+                    oneatomids = []
+                    oneatomidindex = []
+                    molid=[]
                     mol_atomid = np.array(mo)
-                    if np.any(np.isin(mol_atomid, cutoffatomid)):
-                        takenatomids.append(mol_atomid)
-                        takenatomidindex.append(
-                            range(idsum, idsum+len(mol_atomid)))
-                        idsum += len(mol_atomid)
-                idx = np.concatenate(takenatomids)
-                cutoffatoms = step_atoms[idx]
-                cutoffatoms[np.nonzero(idx == atoma-1)[0][0]].tag = 1
-                cutoffatoms.wrap(
-                    center=step_atoms[atoma-1].position /
-                    cutoffatoms.get_cell_lengths_and_angles()[0: 3],
-                    pbc=cutoffatoms.get_pbc())
-                write_xyz(
-                    os.path.join(
-                        self.dataset_dir, folder,
-                        f'{self.xyzfilename}_{trajatomfilename}_{atomtypenum}.xyz'),
-                    cutoffatoms, format='xyz')
+                    molid.append(molecules.index(mo))
+                    #if np.any(np.isin(mol_atomid, cutoffatomid)):
+                    oneatomids.append(mol_atomid)
+                    oneatomidindex.append(
+                        range(idsum, idsum+len(mol_atomid)))
+                    idsum += len(mol_atomid)
+                    idx = np.concatenate(oneatomids)
+                    cutoffatoms = step_atoms[idx]
+                    #print(cutoffatoms)
+                    
+                    #cutoffatoms[np.nonzero(idx == atoma-1)[0][0]].tag = 1
+                    #cutoffatoms.wrap(
+                    #    center=step_atoms[atoma-1].position /
+                    #    cutoffatoms.get_cell_lengths_and_angles()[0: 3],
+                    #    pbc=cutoffatoms.get_pbc())
+                    #print(molid)
+                    write_xyz(os.path.join(self.dataset_dir, folder, f'1b-'+str(molecules.index(mo))+'.xyz'),cutoffatoms, format='xyz')
+                    #    for i in cutoffatoms:
+                    #        f.write(i)
+                            #cutoffatoms, format='xyz')
+                """
                 if self.writegjf:
                     self._convertgjf(
                         os.path.join(
@@ -346,6 +351,7 @@ class DatasetBuilder:
                         self.gjfdir, folder,
                         f'{self.xyzfilename}_{trajatomfilename}_{atomtypenum}.atom_pref.npy'),
                         np.array([cutoffatoms.get_tags()]))
+                """
                 results += 1
         return results
 
